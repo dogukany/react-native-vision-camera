@@ -1,5 +1,5 @@
 {
-  "name": "react-native-vision-camera",
+  "name": "@dogukany/react-native-vision-camera",
   "version": "2.15.2",
   "description": "The Camera library that sees the vision.",
   "main": "lib/commonjs/index",
