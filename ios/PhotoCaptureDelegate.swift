@@ -30,27 +30,31 @@ class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
       return
     }
 
-    let error = ErrorPointer(nilLiteral: ())
-    guard let tempFilePath = RCTTempFilePath("jpeg", error)
-    else {
-      promise.reject(error: .capture(.createTempFileError), cause: error?.pointee)
-      return
-    }
-    let url = URL(string: "file://\(tempFilePath)")!
+    guard let directory = try? FileManager.default.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: false) as NSURL else {
+        promise.reject(error: .capture(.fileError))
+        return 
+      }
 
-    guard let data = photo.fileDataRepresentation() else {
+    let fileName = "\(UUID().uuidString).jpeg"
+      
+    guard let fileURL = directory.appendingPathComponent(fileName) else {
       promise.reject(error: .capture(.fileError))
       return
     }
+    
+    guard let data = photo.fileDataRepresentation() else {
+       promise.reject(error: .capture(.fileError))
+       return
+     }
 
     do {
-      try data.write(to: url)
+        try data.write(to: fileURL)
       let exif = photo.metadata["{Exif}"] as? [String: Any]
       let width = exif?["PixelXDimension"]
       let height = exif?["PixelYDimension"]
 
       promise.resolve([
-        "path": tempFilePath,
+        "path":  fileURL.path,
         "width": width as Any,
         "height": height as Any,
         "isRawPhoto": photo.isRawPhoto,
